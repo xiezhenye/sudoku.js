@@ -1,0 +1,308 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="en">
+<head>
+    <title>sudoku</title>
+    <style>
+        td {
+            border: 1px solid #aaa;
+            width: 40px;
+            height:40px;
+            font-size: 32px;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            cursor: pointer;
+			
+        }
+        td.pending {
+            font-size:9px;
+			letter-spacing:0.2em;
+        }
+		td.user {
+            color:#46b;
+        }
+        td:hover {
+            background-color: #ffa;
+        }
+        tbody{
+            border: 2px solid #444;
+        }
+        colgroup {
+            border: 2px solid #444;
+        }
+        table{
+            border-collapse: collapse;
+            font-family:consolas,courier new,monospace;
+            line-height:12px;
+			background-color:#fffff5;
+			/*display:none;*/
+        }
+    </style>
+</head>
+<body>
+    <table class="sudoku" id="sudoku">
+        <colgroup>
+            <col/><col/><col/>
+        </colgroup>
+        <colgroup>
+            <col/><col/><col/>
+        </colgroup>
+        <colgroup>
+            <col/><col/><col/>
+        </colgroup>
+        <tbody>
+            <tr><td></td><td></td><td> </td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+        <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+        <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+    </table>
+    <script type="text/javascript">
+        var d=document.getElementById('sudoku');
+        var tds = d.getElementsByTagName('td');
+        //var cols = d.getElementsByTagName('col');
+        //var trs = d.getElementsByTagName('tr');
+       
+		function render(data) {
+			for (var i in data) {
+				renderCell(data, i);
+			}
+		}
+		function renderCell(data, i) {
+			if (data[i].constructor == Number || length[i]==1) {
+				if (data[i] == 0) {
+					tds[i].innerHTML = '';
+					tds[i].className='user';
+				} else {
+					var text = '';
+					for (var j in data[i]) {
+						text=data[i][j];break;
+					}
+					tds[i].innerHTML = text;
+					tds[i].className='';
+				}
+			} else {
+				var a=[null, "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;"];
+				for (var j in data[i]) {
+					if (data[i][j]) {
+						a[data[i][j]] = data[i][j];
+					}
+				}
+				s='<span>'+a[1]+a[2]+a[3]+'<br>'+a[4]+a[5]+a[6]+'<br>'+a[7]+a[8]+a[9]+'</span>';
+				tds[i].innerHTML = s;
+				tds[i].className='pending';
+			}
+		}
+		
+		var data=[];
+		var length=[];
+		for (var i=0;i<81;i++){
+			//data[i]=[1,2,3,4,5,6,7,8,9];
+			data[i]={1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9};
+			length[i]=9;
+		}
+		
+		var rdata=[[],[],[],[],[],[],[],[],[]];
+		
+		var rows=[];
+		for (var i=0;i<9;i++) {
+			rows[i]=[];
+			for (var j=0;j<9;j++) {
+				rows[i][j]=9*i+j;
+			}
+		}
+		var cols=[];
+		for (var i=0;i<9;i++) {
+			cols[i]=[];
+			for (var j=0;j<9;j++) {
+				cols[i][j]=i+j*9;
+			}
+		}
+		var blocks=[];var s=[0,3,6,27,30,33,54,57,60];var o=[0,1,2,9,10,11,18,19,20];
+		for (var i in s) {
+			blocks[i]=[];
+			for (var j in o) {
+				blocks[i][j]=s[i]+o[j];
+			}
+		}
+		function colOf(i) {
+			return i % 9;
+		}
+		function rowOf(i) {
+			return parseInt(i / 9);
+		}
+		function blockOf(i) {
+			return parseInt(i / 27) * 3 + parseInt(i / 3) % 3;
+		}
+		function C(l,n,p) {
+			p=p||[];
+			if (l.length==n) {
+				return [l.concat(p)];
+			}
+			if(l.length==0){
+				return [];
+			}
+			var e=[l.pop()];
+			var r1=C(l.concat(),n,p);
+			var r2=n>0?C(l.concat(),n-1,e.concat(p)):[];
+			return r1.concat(r2);
+		}
+		/*
+		var d1=[
+			8,2,7,3,0,0,6,0,0,
+			0,0,9,8,0,5,0,3,0,
+			3,6,5,0,0,0,9,0,0,
+			0,8,0,0,3,0,0,0,1,
+			0,0,0,4,0,1,0,0,0,
+			6,0,0,0,8,0,0,2,0,
+			0,0,2,0,0,0,1,8,9,
+			0,1,0,9,0,2,3,0,0,
+			0,0,6,0,0,8,7,4,2,
+		];*/
+		var d1=[
+			5,0,0,0,0,0,0,0,2,
+			0,0,0,9,3,0,1,0,6,
+			0,1,0,8,0,0,3,0,0,
+			4,3,0,0,1,0,0,2,5,
+			0,2,1,3,0,5,7,6,0,
+			7,5,0,0,8,0,0,1,3,
+			0,0,4,0,0,7,0,3,0,
+			1,0,5,0,9,3,0,0,0,
+			3,0,0,0,0,0,0,0,1,
+		];
+		for (var i in d1) {
+			if (d1[i] > 0) {
+				//data[i] = [d1[i]];
+				data[i]={};//length:1};
+				data[i][d1[i]]=d1[i]; //[d1[i]];
+				length[i]=1;
+			}
+		}
+		
+		function union(ss) {
+			var t={};
+			for (var i in ss) {
+				for (var j in ss[i]) {
+					t[ss[i][j]]=1;
+				}
+			}
+			var ret=[];
+			for (var i in t) {
+				ret.push(parseInt(i));
+			}
+			return ret;
+		}
+		var c9 = [[]];
+		for (var i=1;i<5;i++){
+			c9.push(C([0,1,2,3,4,5,6,7,8],i));
+		}
+		function testO(set,n) {
+			/*
+			var g=[];
+			for (var i in set) {
+				if (length[set[i]]==1 && n>1) {
+					continue;
+				}
+				g.push(set[i]);
+			}
+			if (g.length <= n) {
+				return;
+			}
+			var cn = C(g,n);
+			*/
+			for1:
+			for (var a in c9[n]) {
+				var c = c9[n][a];
+				var tt=[];
+				for (var j in c) {
+					if (length[set[c[j]]]==1 && n>1) {
+						continue for1;
+					}
+					tt.push(data[set[c[j]]]);
+				}
+				var u = union(tt);
+				if (tt.length==u.length) {
+					erase(set,u,c);
+				}
+			}
+		}
+		function testE(set,n) {
+			var r = {};//1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[]};
+			for (var i in set) {
+				if(length[set[i]] == 1) {
+					continue;
+				}
+				for (var j in data[set[i]]) {
+					var k=data[set[i]][j];
+					if (r[k] == undefined) {
+						r[k]=[];
+					}
+					r[k].push(i);
+				}
+			}
+			console.log(r);
+			return;
+			for1:
+			for (var a in c9[n]) {
+				var c = c9[n][a];
+				for (var j in c) {
+					if (length[set[c[j]]]==1 && n>1) {
+						continue for1;
+					}
+					console.log(data[set[c[j]]]);
+					
+				}
+				console.log(r);
+			}
+		}
+		function erase(set,to_erase,except){
+			ret=0;
+			for (var i in to_erase) {
+				for (var j in set) {
+					if (except.indexOf(parseInt(j))>=0) {
+						continue;
+					}
+					if (data[set[j]][to_erase[i]]) {
+						delete data[set[j]][to_erase[i]];
+						length[set[j]]--;
+						ret++;
+					}
+				}
+			}
+			return ret;
+		}
+		function test(n) {
+			for (var i in rows) {
+				testO(rows[i],n);
+				testO(cols[i],n);
+				testO(blocks[i],n);
+				testE(rows[i],n);
+			}
+		}
+		test(1);
+		/*
+		test(1);
+		test(2);
+		test(1);
+		test(2);
+		test(1);
+		test(3);
+		test(1);
+		test(1);
+		*/
+		render(data);
+    </script>
+</body>
+</html>
+
